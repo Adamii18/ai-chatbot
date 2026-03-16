@@ -6,7 +6,9 @@ import config
 app = Flask(__name__)
 CORS(app)
 
-client = anthropic.Anthropic(api_key=config.ANTHROPIC_API_KEY)
+import os
+api_key = os.environ.get("ANTHROPIC_API_KEY") or config.ANTHROPIC_API_KEY
+client = anthropic.Anthropic(api_key=api_key)
 
 def build_system_prompt():
     prompt = f"You are {config.BOT_NAME}, a friendly AI assistant for {config.BUSINESS_NAME}.\n\n"
