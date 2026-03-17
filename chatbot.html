@@ -202,7 +202,14 @@
 
 <script>
   // ⚠️ YOUR SERVER ADDRESS — update if IP changes
- const SERVER = "https://ai-chatbot-production-0483.up.railway.app"; 
+ const SERVER = window.location.origin;
+```
+
+That's it! This means the chatbot will **always connect to wherever it's hosted** — no more URL problems ever again! 😊
+
+Commit the change, wait 2 minutes, then open:
+```
+https://ai-chatbot-production-0483.up.railway.app/bot 
 
   let conversationHistory = [];
 
