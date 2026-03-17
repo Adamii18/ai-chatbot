@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Aria — AI Support</title>
+<title>SmartBot — AI Customer Support</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
   :root {
     --bg: #0a0a0f;
     --surface: #13131a;
@@ -17,43 +18,91 @@
     --accent-glow: rgba(124,106,247,0.3);
     --text: #e8e8f0;
     --text-muted: #7070a0;
+    --user-bubble: #1e1b4b;
+    --bot-bubble: #13131a;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
   }
+
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--font-body);
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden;
   }
+
+  /* Background atmosphere */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 20% 20%, rgba(124,106,247,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 80% 80%, rgba(247,106,180,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
   .chat-wrapper {
+    position: relative;
+    z-index: 1;
     width: 100%;
     max-width: 480px;
     height: 100vh;
+    max-height: 760px;
     display: flex;
     flex-direction: column;
     background: var(--surface);
     border: 1px solid var(--border);
+    border-radius: 24px;
     overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(124,106,247,0.1),
+      0 40px 80px rgba(0,0,0,0.6),
+      0 0 60px rgba(124,106,247,0.05);
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* Header */
   .chat-header {
-    padding: 16px 20px;
+    padding: 20px 24px 18px;
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
+    position: relative;
   }
+
+  .chat-header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; left: 24px; right: 24px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), var(--accent2), transparent);
+    opacity: 0.4;
+  }
+
   .bot-avatar {
-    width: 42px; height: 42px;
-    border-radius: 12px;
+    width: 44px; height: 44px;
+    border-radius: 14px;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
     display: flex; align-items: center; justify-content: center;
     font-size: 20px;
+    flex-shrink: 0;
     box-shadow: 0 0 20px var(--accent-glow);
     position: relative;
   }
+
   .bot-avatar::after {
     content: '';
     position: absolute;
@@ -63,160 +112,432 @@
     border-radius: 50%;
     border: 2px solid var(--surface);
   }
+
   .bot-info h2 {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px; font-weight: 700;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.01em;
   }
-  .bot-info p { font-size: 12px; color: var(--text-muted); }
+
+  .bot-info p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 1px;
+    font-weight: 300;
+  }
+
+  .header-actions {
+    margin-left: auto;
+    display: flex; gap: 8px;
+  }
+
+  .icon-btn {
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .icon-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Business info banner */
+  .biz-banner {
+    padding: 10px 20px;
+    background: linear-gradient(135deg, rgba(124,106,247,0.08), rgba(247,106,180,0.05));
+    border-bottom: 1px solid var(--border);
+    font-size: 11.5px;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 400;
+  }
+  .biz-banner span { color: var(--accent); font-weight: 500; }
+
+  /* Messages */
   .chat-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 16px;
+    padding: 20px 18px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
+    scroll-behavior: smooth;
   }
+
+  .chat-messages::-webkit-scrollbar { width: 4px; }
+  .chat-messages::-webkit-scrollbar-track { background: transparent; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
   .message {
-    display: flex; gap: 10px;
-    animation: msgIn 0.3s ease both;
+    display: flex;
+    gap: 10px;
+    animation: msgIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
     max-width: 85%;
   }
+
   @keyframes msgIn {
-    from { opacity: 0; transform: translateY(8px); }
+    from { opacity: 0; transform: translateY(10px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+
   .message.user { flex-direction: row-reverse; align-self: flex-end; }
   .message.bot  { align-self: flex-start; }
+
   .msg-avatar {
-    width: 28px; height: 28px;
-    border-radius: 8px;
+    width: 30px; height: 30px;
+    border-radius: 10px;
+    flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 13px; flex-shrink: 0; margin-top: 2px;
+    font-size: 13px;
+    margin-top: 2px;
   }
-  .bot .msg-avatar { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
-  .user .msg-avatar { background: var(--surface2); border: 1px solid var(--border); }
-  .msg-bubble {
-    padding: 10px 14px;
-    border-radius: 14px;
-    font-size: 14px;
-    line-height: 1.55;
+
+  .bot .msg-avatar {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    box-shadow: 0 0 10px var(--accent-glow);
   }
-  .bot .msg-bubble {
+
+  .user .msg-avatar {
     background: var(--surface2);
     border: 1px solid var(--border);
-    border-bottom-left-radius: 4px;
+    color: var(--text-muted);
   }
+
+  .msg-content { display: flex; flex-direction: column; gap: 4px; }
+
+  .msg-bubble {
+    padding: 11px 15px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+    font-weight: 400;
+  }
+
+  .bot .msg-bubble {
+    background: var(--bot-bubble);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 5px;
+    color: var(--text);
+  }
+
   .user .msg-bubble {
     background: linear-gradient(135deg, #2d2b6b, #1e1b4b);
     border: 1px solid rgba(124,106,247,0.25);
-    border-bottom-right-radius: 4px;
+    border-bottom-right-radius: 5px;
     color: #d4d0ff;
+    text-align: right;
   }
+
   .msg-time {
-    font-size: 10px; color: var(--text-muted);
-    padding: 0 4px; margin-top: 3px;
+    font-size: 10.5px;
+    color: var(--text-muted);
+    padding: 0 4px;
+    font-weight: 300;
   }
   .user .msg-time { text-align: right; }
+
+  /* Typing indicator */
   .typing-indicator {
     display: flex; gap: 5px; align-items: center;
-    padding: 12px 14px;
-    background: var(--surface2);
+    padding: 14px 16px;
+    background: var(--bot-bubble);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    border-bottom-left-radius: 4px;
+    border-radius: 16px;
+    border-bottom-left-radius: 5px;
     width: fit-content;
   }
+
   .typing-dot {
     width: 6px; height: 6px;
     background: var(--accent);
     border-radius: 50%;
-    animation: bounce 1.2s infinite ease-in-out;
+    animation: typingBounce 1.2s infinite ease-in-out;
+    opacity: 0.6;
   }
   .typing-dot:nth-child(2) { animation-delay: 0.2s; background: var(--accent2); }
   .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce {
+
+  @keyframes typingBounce {
     0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
     30% { transform: translateY(-5px); opacity: 1; }
   }
+
+  /* Quick replies */
+  .quick-replies {
+    display: flex; flex-wrap: wrap; gap: 7px;
+    padding: 0 18px 10px;
+  }
+
+  .quick-reply {
+    padding: 7px 13px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 12.5px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .quick-reply:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(124,106,247,0.07);
+  }
+
+  /* Input area */
   .chat-input-area {
-    padding: 12px 14px 16px;
+    padding: 14px 16px 18px;
+    background: var(--surface);
     border-top: 1px solid var(--border);
   }
+
   .input-row {
-    display: flex; align-items: flex-end; gap: 10px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
     background: var(--surface2);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 10px 10px 10px 14px;
+    border-radius: 16px;
+    padding: 10px 10px 10px 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
   .input-row:focus-within {
     border-color: rgba(124,106,247,0.5);
+    box-shadow: 0 0 0 3px rgba(124,106,247,0.07);
   }
+
   #userInput {
-    flex: 1; background: transparent; border: none; outline: none;
-    color: var(--text); font-family: 'DM Sans', sans-serif;
-    font-size: 14px; resize: none; max-height: 100px; line-height: 1.5;
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 400;
+    resize: none;
+    max-height: 100px;
+    line-height: 1.5;
+    placeholder-color: var(--text-muted);
   }
   #userInput::placeholder { color: var(--text-muted); }
+
   .send-btn {
-    width: 36px; height: 36px; border-radius: 10px;
+    width: 36px; height: 36px;
+    border-radius: 10px;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border: none; cursor: pointer;
+    border: none;
+    cursor: pointer;
     display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
     transition: all 0.2s;
+    box-shadow: 0 0 14px var(--accent-glow);
   }
-  .send-btn:hover { transform: scale(1.05); }
+  .send-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent-glow); }
+  .send-btn:active { transform: scale(0.97); }
   .send-btn svg { width: 16px; height: 16px; fill: white; }
+
   .input-hint {
-    font-size: 11px; color: var(--text-muted);
-    text-align: center; margin-top: 6px;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 8px;
+    font-weight: 300;
   }
-  .input-hint span { color: var(--accent); }
+  .input-hint span { color: var(--accent); opacity: 0.7; }
+
+  /* Config panel */
+  .config-panel {
+    position: absolute;
+    inset: 0;
+    background: var(--surface);
+    z-index: 10;
+    padding: 24px;
+    display: none;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+    animation: fadeIn 0.25s ease;
+  }
+  .config-panel.open { display: flex; }
+
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .config-panel h3 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .close-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); font-size: 20px; line-height: 1;
+    transition: color 0.2s;
+  }
+  .close-btn:hover { color: var(--text); }
+
+  .config-label {
+    font-size: 12px; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-weight: 500; margin-bottom: 6px;
+  }
+
+  .config-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: vertical;
+    min-height: 80px;
+  }
+  .config-input:focus { border-color: var(--accent); }
+
+  .config-input.single { min-height: unset; resize: none; }
+
+  .save-btn {
+    padding: 12px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; border-radius: 12px;
+    color: white; font-family: var(--font-display);
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    margin-top: 4px;
+  }
+  .save-btn:hover { opacity: 0.9; transform: translateY(-1px); }
 </style>
 </head>
 <body>
+
 <div class="chat-wrapper">
+
+  <!-- Config Panel -->
+  <div class="config-panel" id="configPanel">
+    <h3>
+      ⚙️ Bot Settings
+      <button class="close-btn" onclick="toggleConfig()">×</button>
+    </h3>
+    <div>
+      <div class="config-label">Business Name</div>
+      <input class="config-input single" id="bizName" placeholder="e.g. TechStore Pro" />
+    </div>
+    <div>
+      <div class="config-label">What does your business do?</div>
+      <textarea class="config-input" id="bizDesc" placeholder="e.g. We sell laptops, phones and accessories. We offer 30-day returns and free shipping on orders above $50."></textarea>
+    </div>
+    <div>
+      <div class="config-label">FAQs / Key Info (paste any details)</div>
+      <textarea class="config-input" id="bizFaq" placeholder="Hours: Mon-Fri 9am-6pm&#10;Phone: +1-800-123-4567&#10;Returns: 30 days, no questions asked&#10;Shipping: 3-5 business days"></textarea>
+    </div>
+    <div>
+      <div class="config-label">Bot Name</div>
+      <input class="config-input single" id="botName" placeholder="e.g. Aria" value="Aria" />
+    </div>
+    <button class="save-btn" onclick="saveConfig()">💾 Save & Restart Chat</button>
+  </div>
+
+  <!-- Header -->
   <div class="chat-header">
     <div class="bot-avatar">🤖</div>
     <div class="bot-info">
-      <h2>Aria — AI Support</h2>
+      <h2 id="headerBotName">Aria — AI Support</h2>
       <p>Always online · Powered by Claude</p>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" title="Settings" onclick="toggleConfig()">⚙</button>
     </div>
   </div>
 
+  <!-- Business Banner -->
+  <div class="biz-banner" id="bizBanner">
+    🏢 Customize this bot → click <span>⚙ Settings</span> to enter your business info
+  </div>
+
+  <!-- Messages -->
   <div class="chat-messages" id="chatMessages"></div>
 
+  <!-- Quick Replies -->
+  <div class="quick-replies" id="quickReplies"></div>
+
+  <!-- Input -->
   <div class="chat-input-area">
     <div class="input-row">
-      <textarea id="userInput" rows="1"
-        placeholder="Type your message..."
-        onkeydown="handleKey(event)"
-        oninput="autoResize(this)"></textarea>
+      <textarea id="userInput" rows="1" placeholder="Type your message..." onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
       <button class="send-btn" onclick="sendMessage()">
         <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
       </button>
     </div>
-    <div class="input-hint">Connected to <span>Python Backend</span></div>
+    <div class="input-hint">Powered by <span>Claude AI</span> · Customize via Settings</div>
   </div>
 </div>
 
 <script>
-  // ⚠️ YOUR SERVER ADDRESS — update if IP changes
- const SERVER = window.location.origin; // dynamic
-```
-
-That's it! This means the chatbot will **always connect to wherever it's hosted** — no more URL problems ever again! 😊
-
-Commit the change, wait 2 minutes, then open:
-```
-https://ai-chatbot-production-0483.up.railway.app/bot 
+  // ─── State ────────────────────────────────────────
+  let config = {
+    botName: "Aria",
+    bizName: "",
+    bizDesc: "",
+    bizFaq: ""
+  };
 
   let conversationHistory = [];
 
+  const QUICK_REPLIES_DEFAULT = [
+    "What are your hours?", "How do I return an item?",
+    "Do you offer support?", "Tell me about pricing"
+  ];
+
+  // ─── Init ─────────────────────────────────────────
   window.onload = () => {
-    addBotMessage("Hi! 👋 I'm Aria, your AI assistant. How can I help you today?");
+    addBotMessage(`Hi there! 👋 I'm **${config.botName}**, your AI assistant.\n\nTo get started, click ⚙ Settings and enter your business info — then I'll be able to answer customer questions about YOUR business!\n\nOr just chat with me to test how I work.`);
+    renderQuickReplies(QUICK_REPLIES_DEFAULT);
   };
 
+  // ─── Config ───────────────────────────────────────
+  function toggleConfig() {
+    const panel = document.getElementById('configPanel');
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) {
+      document.getElementById('bizName').value = config.bizName;
+      document.getElementById('bizDesc').value = config.bizDesc;
+      document.getElementById('bizFaq').value = config.bizFaq;
+      document.getElementById('botName').value = config.botName;
+    }
+  }
+
+  function saveConfig() {
+    config.bizName = document.getElementById('bizName').value.trim();
+    config.bizDesc = document.getElementById('bizDesc').value.trim();
+    config.bizFaq = document.getElementById('bizFaq').value.trim();
+    config.botName = document.getElementById('botName').value.trim() || "Aria";
+
+    document.getElementById('headerBotName').textContent = `${config.botName} — AI Support`;
+
+    if (config.bizName) {
+      document.getElementById('bizBanner').innerHTML =
+        `🏢 Now assisting for: <span>${config.bizName}</span>`;
+    }
+
+    toggleConfig();
+    conversationHistory = [];
+    document.getElementById('chatMessages').innerHTML = '';
+    addBotMessage(`✅ Config saved! I'm now set up as **${config.botName}** for **${config.bizName || 'your business'}**.\n\nHow can I help your customers today?`);
+  }
+
+  // ─── Messages ─────────────────────────────────────
   function getTime() {
     return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
@@ -227,7 +548,7 @@ https://ai-chatbot-production-0483.up.railway.app/bot
     div.className = 'message bot';
     div.innerHTML = `
       <div class="msg-avatar">🤖</div>
-      <div>
+      <div class="msg-content">
         <div class="msg-bubble">${formatText(text)}</div>
         <div class="msg-time">${getTime()}</div>
       </div>`;
@@ -241,7 +562,7 @@ https://ai-chatbot-production-0483.up.railway.app/bot
     div.className = 'message user';
     div.innerHTML = `
       <div class="msg-avatar">👤</div>
-      <div>
+      <div class="msg-content">
         <div class="msg-bubble">${escapeHtml(text)}</div>
         <div class="msg-time">${getTime()}</div>
       </div>`;
@@ -255,10 +576,12 @@ https://ai-chatbot-production-0483.up.railway.app/bot
     div.className = 'message bot'; div.id = 'typingMsg';
     div.innerHTML = `
       <div class="msg-avatar">🤖</div>
-      <div class="typing-indicator">
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
-        <div class="typing-dot"></div>
+      <div class="msg-content">
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
       </div>`;
     container.appendChild(div);
     scrollBottom();
@@ -269,8 +592,8 @@ https://ai-chatbot-production-0483.up.railway.app/bot
     if (el) el.remove();
   }
 
-  function formatText(t) {
-    return escapeHtml(t)
+  function formatText(text) {
+    return escapeHtml(text)
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n/g, '<br>');
   }
@@ -284,36 +607,33 @@ https://ai-chatbot-production-0483.up.railway.app/bot
     setTimeout(() => c.scrollTop = c.scrollHeight, 50);
   }
 
+  // ─── Quick Replies ────────────────────────────────
+  function renderQuickReplies(replies) {
+    const container = document.getElementById('quickReplies');
+    container.innerHTML = '';
+    replies.forEach(r => {
+      const btn = document.createElement('button');
+      btn.className = 'quick-reply';
+      btn.textContent = r;
+      btn.onclick = () => { handleQuickReply(r); };
+      container.appendChild(btn);
+    });
+  }
+
+  function handleQuickReply(text) {
+    document.getElementById('quickReplies').innerHTML = '';
+    processUserMessage(text);
+  }
+
+  // ─── Send ─────────────────────────────────────────
   async function sendMessage() {
     const input = document.getElementById('userInput');
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
     input.style.height = 'auto';
-
-    addUserMessage(text);
-    conversationHistory.push({ role: "user", content: text });
-    showTyping();
-
-    try {
-      const response = await fetch(`${SERVER}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: conversationHistory })
-      });
-
-      const data = await response.json();
-      const reply = data.reply || "Sorry, I couldn't get a response.";
-
-      removeTyping();
-      addBotMessage(reply);
-      conversationHistory.push({ role: "assistant", content: reply });
-
-    } catch (err) {
-      removeTyping();
-      addBotMessage("⚠️ Can't reach the server. Make sure app.py is running in Pydroid.");
-      console.error(err);
-    }
+    document.getElementById('quickReplies').innerHTML = '';
+    processUserMessage(text);
   }
 
   function handleKey(e) {
@@ -323,6 +643,66 @@ https://ai-chatbot-production-0483.up.railway.app/bot
   function autoResize(el) {
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  }
+
+  async function processUserMessage(text) {
+    addUserMessage(text);
+    conversationHistory.push({ role: "user", content: text });
+    showTyping();
+
+    try {
+      const systemPrompt = buildSystemPrompt();
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: conversationHistory
+        })
+      });
+
+      const data = await response.json();
+      const reply = data.content?.[0]?.text || "Sorry, I couldn't get a response. Please try again.";
+
+      removeTyping();
+      addBotMessage(reply);
+      conversationHistory.push({ role: "assistant", content: reply });
+
+      // Show contextual quick replies after first real interaction
+      if (conversationHistory.length === 2 && config.bizName) {
+        renderQuickReplies(["Tell me more", "Pricing info", "Contact support", "Something else"]);
+      }
+
+    } catch (err) {
+      removeTyping();
+      addBotMessage("⚠️ Connection error. Make sure you're using this via Claude's artifact system where the API key is handled automatically.");
+      console.error(err);
+    }
+  }
+
+  function buildSystemPrompt() {
+    let prompt = `You are ${config.botName}, a friendly and helpful AI customer support assistant.`;
+
+    if (config.bizName) {
+      prompt += ` You work for ${config.bizName}.`;
+    }
+    if (config.bizDesc) {
+      prompt += `\n\nAbout the business: ${config.bizDesc}`;
+    }
+    if (config.bizFaq) {
+      prompt += `\n\nKey information and FAQs:\n${config.bizFaq}`;
+    }
+
+    prompt += `\n\nGuidelines:
+- Be warm, concise, and helpful
+- Answer questions based on the business info provided
+- If you don't know something specific, offer to connect them with a human agent
+- Keep responses short and conversational (2-4 sentences usually)
+- Use occasional relevant emojis to be friendly but not excessive`;
+
+    return prompt;
   }
 </script>
 </body>
