@@ -7,7 +7,7 @@ from groq import Groq
 app = Flask(__name__, static_folder=".", static_url_path="")
 CORS(app)
 
-client = Groq(api_key=os.environ.get("GROQ-API-KEY") or "your-groq-key-here")
+client = Groq(api_key=os.environ.get("GROQ_API_KEY") or "your-groq-key-here")
 
 def build_system_prompt():
     prompt = f"You are {config.BOT_NAME}, a friendly AI assistant for {config.BUSINESS_NAME}.\n\n"
@@ -41,11 +41,3 @@ if __name__ == "__main__":
     print(f"🤖 {config.BOT_NAME} is running!")
     print("📡 Server: http://localhost:5000")
     app.run(debug=True, host="0.0.0.0", port=5000)
-```
-
-Also add `groq` to `requirements.txt` on GitHub:
-```
-flask==3.1.3
-flask-cors==6.0.2
-anthropic==0.84.0
-groq
