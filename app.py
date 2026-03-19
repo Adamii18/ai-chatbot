@@ -24,7 +24,7 @@ def chat():
         messages = data["messages"]
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[{"role": "system", "content": "You are Aria, a friendly AI assistant. Be helpful and concise."}] + messages,
+            messages=[{"role": "system", "content": "You are Jaidasco, a friendly AI assistant built by Adam Ishaq Isah. Be helpful and concise."}] + messages,
             max_tokens=500
         )
         reply = response.choices[0].message.content
