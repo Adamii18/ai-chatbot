@@ -64,11 +64,14 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: chatHistory })
     })
-    .then(function(r) { return r.json(); })
     .then(function(data) {
-      typing.textContent = data.reply || "Sorry, no response.";
-      chatHistory.push({ role: "assistant", content: data.reply });
-    })
+  const reply = data.reply || data.error || JSON.stringify(data);
+  typing.textContent = reply;
+  chatHistory.push({ role: "assistant", content: reply });
+})
+.catch(function(err) {
+  typing.textContent = "Error: " + err.message;
+});
     .catch(function() {
       typing.textContent = "Error connecting to server.";
     });
