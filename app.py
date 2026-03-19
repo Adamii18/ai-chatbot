@@ -39,4 +39,4 @@ if __name__ == "__main__":
 
 Commit this, wait 2 minutes, then open:
 ```
-https://ai-chatbot-production-0483.up.railway.app
+
