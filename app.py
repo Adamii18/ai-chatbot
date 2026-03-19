@@ -1,16 +1,17 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
-from groq import Groq
+import groq
 
 app = Flask(__name__, static_folder=".", static_url_path="")
 CORS(app)
 
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+groq_key = os.environ.get("GROQ_API_KEY") or os.environ.get("groq_api_key") or ""
+client = groq.Groq(api_key=groq_key)
 
 @app.route("/")
 def home():
-    return jsonify({"status": "running", "bot": "Aria"})
+    return jsonify({"status": "running", "bot": "Aria", "key_set": bool(groq_key)})
 
 @app.route("/bot")
 def bot():
@@ -18,18 +19,24 @@ def bot():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.get_json()
-    messages = data["messages"]
-
-    response = client.chat.completions.create(
-        model="llama3-8b-8192",
-        messages=[{"role": "system", "content": "You are Aria, a friendly AI assistant. Be helpful and concise."}] + messages,
-        max_tokens=500
-    )
-
-    reply = response.choices[0].message.content
-    return jsonify({"reply": reply})
+    try:
+        data = request.get_json()
+        messages = data["messages"]
+        response = client.chat.completions.create(
+            model="llama3-8b-8192",
+            messages=[{"role": "system", "content": "You are Aria, a friendly AI assistant. Be helpful and concise."}] + messages,
+            max_tokens=500
+        )
+        reply = response.choices[0].message.content
+        return jsonify({"reply": reply})
+    except Exception as e:
+        return jsonify({"reply": "Error: " + str(e)})
 
 if __name__ == "__main__":
     print("Aria is running!")
     app.run(debug=True, host="0.0.0.0", port=5000)
+```
+
+Commit this, wait 2 minutes, then open:
+```
+https://ai-chatbot-production-0483.up.railway.app
