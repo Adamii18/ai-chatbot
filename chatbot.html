@@ -42,47 +42,47 @@
   </div>
 </div>
 <script>
-var history = [];
+  const chatHistory = [];
 
-document.getElementById('input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
-});
-
-function send() {
-  var input = document.getElementById('input');
-  var text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-
-  addMsg(text, 'user-msg');
-  history.push({ role: "user", content: text });
-
-  var typing = addMsg('...', 'bot-msg');
-
-  fetch('/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ messages: history })
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    typing.textContent = data.reply || "Sorry, no response.";
-    history.push({ role: "assistant", content: data.reply });
-  })
-  .catch(function() {
-    typing.textContent = "Error connecting to server.";
+  document.getElementById('input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
   });
-}
 
-function addMsg(text, cls) {
-  var div = document.createElement('div');
-  div.className = cls;
-  div.textContent = text;
-  var msgs = document.getElementById('messages');
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  return div;
-}
+  function send() {
+    const input = document.getElementById('input');
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+
+    addMsg(text, 'user-msg');
+    chatHistory.push({ role: "user", content: text });
+
+    const typing = addMsg('...', 'bot-msg');
+
+    fetch('/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: chatHistory })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      typing.textContent = data.reply || "Sorry, no response.";
+      chatHistory.push({ role: "assistant", content: data.reply });
+    })
+    .catch(function() {
+      typing.textContent = "Error connecting to server.";
+    });
+  }
+
+  function addMsg(text, cls) {
+    const div = document.createElement('div');
+    div.className = cls;
+    div.textContent = text;
+    const msgs = document.getElementById('messages');
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
 </script>
 </body>
 </html>
