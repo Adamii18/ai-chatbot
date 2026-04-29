@@ -11,10 +11,6 @@ client = groq.Groq(api_key=groq_key)
 
 @app.route("/")
 def home():
-    return jsonify({"status": "running", "bot": "Aria", "key_set": bool(groq_key)})
-
-@app.route("/bot")
-def bot():
     return app.send_static_file("chatbot.html")
 
 @app.route("/chat", methods=["POST"])
