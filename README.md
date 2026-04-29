@@ -33,8 +33,8 @@ python app.py
 5. Open browser at `http://localhost:5000`
 
 ## 🌐 Live Demo
-
-Coming soon on Render.com
+👉 https://ai-chatbot-448j.onrender.com
+Commit it ✅
 
 ## 👤 Author
 
